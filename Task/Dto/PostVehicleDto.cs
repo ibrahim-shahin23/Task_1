@@ -1,4 +1,4 @@
-﻿namespace Task.Dto
+﻿namespace Task.Api.Dto
 {
     public class PostVehicleDto
     {

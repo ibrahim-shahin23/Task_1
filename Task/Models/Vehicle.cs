@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Task.Models
+namespace Task.Api.Models
 {
     public class Vehicle
     {

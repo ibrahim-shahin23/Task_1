@@ -1,24 +1,24 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Task.Dto;
-using Task.Models;
+using Task.Api.Dto;
+using Task.Api.Models;
+using Task.Api.Services.Interfaces;
 
-namespace Task.Controllers
+namespace Task.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class VehicleController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-        public VehicleController(ApplicationDbContext context)
+        private readonly IUnitOfWork _unitOfWork;
+        public VehicleController(IUnitOfWork unitOfWork)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         [HttpGet("GetAllVehicles")]
         public async Task<IActionResult> GetAllVehicles()
         {
-            var vehicles = await _context.vehicles.Include(x => x.category).ToListAsync();
+            var vehicles = await _unitOfWork.vehicles.FindAll(new[] { "category" });
             var vehicleDtos = vehicles.Select(v =>
              new VehicleDto
              {
@@ -32,15 +32,15 @@ namespace Task.Controllers
             return Ok(vehicleDtos);
         }
 
+
         [HttpGet("GetById/{id}")]
         public async Task<IActionResult> GetbyId([FromRoute] int id)
         {
-            var vehicle = await _context.vehicles.Include(x => x.category).FirstOrDefaultAsync(x => x.Id == id);
+            var vehicle = await _unitOfWork.vehicles.FindVehicle(id);
             if (vehicle == null)
             {
                 return NotFound();
             }
-
             var vehicledto = new VehicleDto
             {
                 Id = vehicle.Id,
@@ -50,11 +50,11 @@ namespace Task.Controllers
                 Year = vehicle.Year,
                 categoryname = vehicle.category != null ? vehicle.category.Name : null
             };
-            return Ok(vehicledto);
+            return Ok(vehicledto);//200
         }
 
         [HttpPost("addvehicle")]
-        public async Task<IActionResult> AddVehicleAsync([FromBody] PostVehicleDto dto)
+        public async Task<IActionResult> AddVehicleAsync([FromBody] PostVehicleDto dto)// route header body
         {
             if (!ModelState.IsValid)
             {
@@ -70,8 +70,8 @@ namespace Task.Controllers
             };
             try
             {
-                _context.vehicles.Add(vehicle);
-                _context.SaveChanges();
+                _unitOfWork.vehicles.Add(vehicle);
+                _unitOfWork.Complete();  // apply to database
             }
             catch (Exception ex)
             {
@@ -83,44 +83,49 @@ namespace Task.Controllers
         [HttpPut("updatevehicle/{id}")]
         public async Task<IActionResult> UpdateVehicleAsync([FromBody] PostVehicleDto dto, int id)
         {
-            var vehicle = await _context.vehicles.FindAsync(id);
+            var vehicle = await _unitOfWork.vehicles.GetById(id);
             if (vehicle == null)
             {
                 return NotFound();
             }
+
             if (!ModelState.IsValid)
             {
                 return BadRequest();
             }
+
             vehicle.Name = dto.Name;
             vehicle.Brand = dto.Brand;
             vehicle.Color = dto.Color;
             vehicle.Year = dto.Year;
             vehicle.CategoryId = dto.categoryId;
+
             try
             {
-                _context.vehicles.Update(vehicle);
-                _context.SaveChanges();
+                _unitOfWork.vehicles.Update(vehicle);
+                _unitOfWork.Complete();
             }
+
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
+
             return Ok("edited successfully");
         }
 
         [HttpDelete("deletevehicle/{id}")]
         public async Task<IActionResult> DeleteVehicleAsync(int id)
         {
-            var vehicle = await _context.vehicles.FindAsync(id);
+            var vehicle = await _unitOfWork.vehicles.GetById(id);
             if (vehicle == null)
             {
                 return NotFound();
             }
             try
             {
-                _context.vehicles.Remove(vehicle);
-                _context.SaveChanges();
+                _unitOfWork.vehicles.Delete(vehicle);
+                _unitOfWork.Complete();
             }
             catch (Exception ex)
             {

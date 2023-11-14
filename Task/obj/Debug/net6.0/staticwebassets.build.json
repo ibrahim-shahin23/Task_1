@@ -1,8 +1,8 @@
 {
   "Version": 1,
-  "Hash": "jPEPG9q6Xikb+8IavT9Tzx9Yasi+Viz1QZ/E4Jmw60s=",
-  "Source": "Task",
-  "BasePath": "_content/Task",
+  "Hash": "qbqFtd7gakC+b6x4i6USTGSVBMb2TYvQBUFm6W5J1x0=",
+  "Source": "Task.Api",
+  "BasePath": "_content/Task.Api",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],

@@ -1,4 +1,4 @@
-﻿namespace Task.Models
+﻿namespace Task.Api.Models
 {
     public class Service
     {
